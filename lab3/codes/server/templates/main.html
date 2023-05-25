@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Imagle-Search similar image!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta http-equiv='cache-control' content="no-cache, must-revalidate, post-check=0, pre-check=0">
+    <meta http-equiv='expires' content='0'>
+    <meta http-equiv='pragma' content='no-cache'>
+
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.2/dist/js/bootstrap.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+</head>
+
+<body style="background: white;">
+
+    <div><br></br><br></br></div>
+
+    <div class="navbar">
+        <div class="navbar-inner">
+            <h1 class="text-center" style="font-size: 80px; letter-spacing: -12px; font-family: 'Heiti SC', sans-serif; font-weight: 530;">    <!-- 使用黑体字，字号为80px，字母间隔为-10px，字体粗细为600 -->
+                <span style="color:#2d85f0;">I</span><!-- I的颜色为蓝色 -->
+                <span style="color:#f4433c;">m</span><!-- m的颜色为红色 -->
+                <span style="color:#ffbc32;">a</span><!-- a的颜色为黄色 -->
+                <span style="color:#2d85f0;">g</span><!-- g的颜色为蓝色 -->
+                <span style="color:#0aa858;">l</span><!-- l的颜色为绿色 -->
+                <span style="color:#f4433c;">e</span><!-- e的颜色为红色 -->
+                &nbsp;&nbsp;&nbsp;
+                <a class="navbar-brand" href=""></a>
+            </h1>
+        </div>
+    </div>
+
+
+    <center></center>
+
+    <div id="main" class="container">
+        <table class="table"
+            style="background: white; border: 1px solid beige; box-shadow: 3px 5px 15px 0px rgba(0, 0, 0, 0.2), 3px 5px 15px 0 rgba(0, 0, 0, 0.19);">
+            <tr style="background: lightgrey;">
+                <td><b>Upload your image and search similar images! (Click on 'Select File' or drag your file below)</b></td>
+                <td><b></b></td>
+            </tr>
+            <tr>
+                <td>
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="file" name="file" value="选择文件" required/>
+                        <input type="submit" value="Search" onclick="fun()">
+                    </form>
+                </td>
+                <td>
+                    <img id="preview" src="" alt="预览图片" style="max-width:300px;display:none;">
+                </td>
+            </tr>
+            <tr id="row1" style="display:none;">
+                <td id="favorites_button">
+                    <a href="">
+                        <button id="clear" style="display:none;">Clear</button>
+                    </a>
+                </td>
+                <td>
+                    <p id="result_num" style="display:none">
+                        11 results were founded. Not satisfied? Try to select the tags below.
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <center><div id="display_star" class="display-star"></div></center>
+    <center><img id="load" src="/images/ajax-loader.gif" style="height:100px;weight:100px;display:none" align="middle"></center>
+    <center>
+        <div id="tags" class="my-div"></div>
+    </center>
+    <center><div id="image_display" class="my-div-img"></div></center>
+
+    <div id="main" class="container">
+        <table id="table" class="table" style="background: white; border: 1px ;display:none;">
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+
+
+<script type="text/javascript">
+    let star_img=[]
+    function myFunction() {
+        document.getElementById("predictedResult").innerHTML = "";
+        $('#clear').hide();
+    }
+
+    function fun() {
+        $('#load').show();
+
+        $("form").submit(function(evt) {
+            evt.preventDefault();
+            var formData = new FormData($(this)[0]);
+
+            $.ajax({
+                url: 'imgUpload',
+                type: 'POST',
+                data: formData,
+                cache: false,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                processData: false,
+
+                success: function(response) {
+                    images=response.images;
+                    tags_enu=response.tags;
+                    console.log(tags_enu);
+
+                    $('#load').hide();
+                    $('#row1').show();
+                    $('#result_num').show();
+                    $('#tags').show();
+                    
+
+                    // clear table contents
+                    let table = document.getElementById('table');
+                    table.innerHTML = '';
+                    
+                    // calculate number of rows
+                    let num_rows = Math.ceil(Object.keys(images).length / 3);
+
+                    // display image results
+                    for (let row = 0; row < num_rows; row++) {
+                        let tr = document.createElement('tr');
+                        for (let col = 0; col < 3; col++) {
+                            let i = row * 3 + col;
+                            if (i >= Object.keys(images).length) {
+                                break;
+                            }
+                            let td = document.createElement('td');
+                            td.id = `t${i}`;
+                            td.innerHTML = `<img id="img${i}" src="${images[`image${i}`]}" alt="Norway" style="..." width="200" height="200">`;
+                            tr.appendChild(td);
+
+                            const button = document.createElement('button');
+                            button.innerText = 'star';
+                            button.addEventListener("click",function(){
+                                $('#image_display').show();
+                                star_img.push(images[`image${i}`]);
+                                button.innerText='⭐starred';
+                            });
+                            td.appendChild(button);
+                        }
+                        table.appendChild(tr);
+                    }
+
+                    //star function
+                    const btn = document.createElement('button');
+                    btn.innerText = `My Favorites`;
+
+                    div=document.getElementById("display_star");
+                    div.style.display="none";
+
+                    btn.addEventListener("click",function(){
+
+                      // update star images
+                      star_img.forEach((img_src)=>{
+                        let imageFound = false;
+                        let images = div.getElementsByTagName("img");
+                        for (var i = 0; i < images.length; i++) {
+                          const img=document.createElement("img");
+                          img.src=img_src;
+                          if (images[i].src === img.src) {
+                            imageFound = true;
+                            break;
+                          }
+                        }
+                        if(!imageFound){
+                          const img=document.createElement("img");
+                          img.src=img_src;
+                          img.style.width="200px";
+                          img.style.height="200px";
+                          div.appendChild(img);
+                        }
+                      });
+
+                      // set image to display
+                      if(div.style.display==="none"){
+                        div.style.display="block";
+                      }else{
+                        div.style.display="none";
+                        btn.style.color="black";
+                      }
+                    });
+                    document.getElementById("favorites_button").appendChild(btn);
+
+                    $('#table').show();
+                    $('#clear').show();
+
+                    // Filter images using tags
+                    let tags=document.getElementById("tags")
+                    let my_key="";
+
+
+                    let text=document.createElement("p");
+                    text.innerText="Possible Tags：";
+                    tags.appendChild(text);
+                    
+                    for(let key in tags_enu){
+                        if(tags_enu[key].length != 0){
+                            let tag_button = document.createElement("button");
+                            // Add number of images to the button text
+                            tag_button.innerText = `${key} (${tags_enu[key].length})`;
+                            tag_button.addEventListener("click",function(){
+                                $("#image_display").show();
+                                image_display=document.getElementById("image_display");
+                                const image_src_list = tags_enu[key];
+                                image_display.innerHTML = "";
+                                image_src_list.forEach((image_src) => {
+                                    const img = document.createElement("img");
+                                    img.src = image_src;
+                                    img.style.width = "200px";
+                                    img.style.height = "200px";
+                                    image_display.appendChild(img);
+                                });
+                            });
+                            tags.appendChild(tag_button);
+                        }
+                    }
+                }
+            });
+            return false;
+        })
+    }
+
+
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#preview').attr('src', e.target.result);
+                $('#preview').show();
+                $('#row1').show();
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    $(document).ready(function() {
+        $('input[type="file"]').change(function() {
+            readURL(this);
+        })
+    })
+
+</script>
+</body>
+
+</html>
